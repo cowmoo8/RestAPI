@@ -62,15 +62,20 @@ app.put('/books/:id', async (req, res) => {
 app.delete('/books/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        console.log('Delete request for book ID:', id);
         const book = await Book.findByIdAndDelete(id);
         if (!book) {
-            return res.status(404).json({ message: `Cannot find any product with that ID ${id}` });
+            console.log(`Book not found with ID: ${id}`);
+            return res.status(404).json({ message: `Cannot find any book with that ID ${id}` });
         }
+        console.log('Book deleted successfully:', book);
         res.status(200).json(book);
     } catch (error) {
+        console.error('Error deleting book:', error.message);
         res.status(500).json({ message: error.message });
     }
 });
+
 
 mongoose.connect('mongodb+srv://admin:Orangemangofudge@api1.ihpxqjj.mongodb.net/Book-API?retryWrites=true&w=majority&appName=API1')
     .then(() => {

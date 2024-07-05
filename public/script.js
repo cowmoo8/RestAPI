@@ -64,6 +64,9 @@ class BookForm extends HTMLElement {
 
             event.target.reset();
             document.getElementById('bookId').value = '';
+
+            // Hide the form
+            this.style.display = 'none';
         });
     }
 
@@ -74,6 +77,9 @@ class BookForm extends HTMLElement {
         document.getElementById('publishedDate').value = book.publishedDate;
         document.getElementById('pages').value = book.pages;
         document.getElementById('genre').value = book.genre;
+
+        // Display the form
+        this.style.display = 'block';
     }
 }
 
@@ -110,12 +116,26 @@ class BookList extends HTMLElement {
             <div><strong>Published on:</strong> ${book.publishedDate}</div>
             <div><strong>Pages:</strong> ${book.pages}</div>
             <div><strong>Genre:</strong> ${book.genre}</div>
-            <button class="btn">Delete</button>
-            <button class="btn">Edit</button>
+            <button class="delete-btn">Delete</button>
+            <button class="edit-btn">Edit</button>
         `;
         this.querySelector('#bookList').appendChild(bookItem);
+    
+        bookItem.querySelector('.delete-btn').addEventListener('click', async () => {
+            console.log('Delete button clicked for book:', book._id);
+            const response = await fetch(`/books/${book._id}`, {
+                method: 'DELETE'
+            });
 
-        bookItem.querySelector('button:nth-child(2)').addEventListener('click', () => {
+            if (response.ok) {
+                console.log('Book deleted successfully:', book._id);
+                document.getElementById(`book-${book._id}`).remove();
+            } else {
+                console.error('Failed to delete the book');
+            }
+        });
+    
+        bookItem.querySelector('.edit-btn').addEventListener('click', () => {
             this.dispatchEvent(new CustomEvent('editBook', { detail: book._id }));
         });
     }
@@ -129,7 +149,6 @@ document.getElementById('jsonButton').addEventListener('click', async () => {
     const books = await response.json();
     const jsonStr = JSON.stringify(books, null, 2);
 
-    
     const newWindow = window.open("", "_blank");
     newWindow.document.write(`<pre>${jsonStr}</pre>`);
 });
