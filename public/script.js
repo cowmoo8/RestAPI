@@ -42,13 +42,18 @@ class BookForm extends HTMLElement {
             };
 
             if (bookId) {
-                await fetch(`/books/${bookId}`, {
+                const response = await fetch(`/books/${bookId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(bookData)
                 });
+
+                if (response.ok) {
+                    const updatedBook = await response.json();
+                    document.querySelector('book-list').updateBookInList(updatedBook);
+                }
             } else {
                 const response = await fetch('/books', {
                     method: 'POST',
@@ -64,9 +69,7 @@ class BookForm extends HTMLElement {
 
             event.target.reset();
             document.getElementById('bookId').value = '';
-
-            // Hide the form
-            this.style.display = 'none';
+            this.style.display = 'block';
         });
     }
 
@@ -78,7 +81,6 @@ class BookForm extends HTMLElement {
         document.getElementById('pages').value = book.pages;
         document.getElementById('genre').value = book.genre;
 
-        // Display the form
         this.style.display = 'block';
     }
 }
@@ -116,28 +118,55 @@ class BookList extends HTMLElement {
             <div><strong>Published on:</strong> ${book.publishedDate}</div>
             <div><strong>Pages:</strong> ${book.pages}</div>
             <div><strong>Genre:</strong> ${book.genre}</div>
-            <button class="delete-btn">Delete</button>
-            <button class="edit-btn">Edit</button>
+            <button class="btn delete">Delete</button>
+            <button class="btn edit">Edit</button>
         `;
         this.querySelector('#bookList').appendChild(bookItem);
-    
-        bookItem.querySelector('.delete-btn').addEventListener('click', async () => {
-            console.log('Delete button clicked for book:', book._id);
+
+        bookItem.querySelector('.delete').addEventListener('click', async () => {
             const response = await fetch(`/books/${book._id}`, {
                 method: 'DELETE'
             });
-
-            if (response.ok) {
-                console.log('Book deleted successfully:', book._id);
-                document.getElementById(`book-${book._id}`).remove();
+            if(response.ok) {
+                bookItem.remove();
             } else {
-                console.error('Failed to delete the book');
+                console.error('Failed to delete book');
             }
         });
-    
-        bookItem.querySelector('.edit-btn').addEventListener('click', () => {
+
+        bookItem.querySelector('.edit').addEventListener('click', () => {
             this.dispatchEvent(new CustomEvent('editBook', { detail: book._id }));
         });
+    }
+
+    updateBookInList(book) {
+        const bookItem = document.getElementById(`book-${book._id}`);
+        if (bookItem) {
+            bookItem.innerHTML = `
+                <div><strong>Title:</strong> ${book.title}</div>
+                <div><strong>Author:</strong> ${book.author}</div>
+                <div><strong>Published on:</strong> ${book.publishedDate}</div>
+                <div><strong>Pages:</strong> ${book.pages}</div>
+                <div><strong>Genre:</strong> ${book.genre}</div>
+                <button class="btn delete">Delete</button>
+                <button class="btn edit">Edit</button>
+            `;
+
+            bookItem.querySelector('.delete').addEventListener('click', async () => {
+                const response = await fetch(`/books/${book._id}`, {
+                    method: 'DELETE'
+                });
+                if(response.ok) {
+                    bookItem.remove();
+                } else {
+                    console.error('Failed to delete book');
+                }
+            });
+
+            bookItem.querySelector('.edit').addEventListener('click', () => {
+                this.dispatchEvent(new CustomEvent('editBook', { detail: book._id }));
+            });
+        }
     }
 }
 
