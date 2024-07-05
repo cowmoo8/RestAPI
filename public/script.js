@@ -123,3 +123,13 @@ class BookList extends HTMLElement {
 
 customElements.define('book-form', BookForm);
 customElements.define('book-list', BookList);
+
+document.getElementById('jsonButton').addEventListener('click', async () => {
+    const response = await fetch('/books');
+    const books = await response.json();
+    const jsonStr = JSON.stringify(books, null, 2);
+
+    
+    const newWindow = window.open("", "_blank");
+    newWindow.document.write(`<pre>${jsonStr}</pre>`);
+});
